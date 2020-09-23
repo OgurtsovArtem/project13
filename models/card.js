@@ -11,6 +11,7 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    match: [/^(((https?):\/\/)?(www\.)?[^\W_][A-z0-9-]*\.[^\W_0-9]{1,8})*(\/(\w[#!:.?+=&%@!\-/])*)?([/#-]\w+[/#.-]?)*$/,'Некорректный URL']
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
