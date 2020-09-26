@@ -22,12 +22,18 @@ module.exports.createCard = (req, res) => {
 
   Card.create({ name, link })
     .then(card => res.send({ data: card }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+      res.status(400).send({ message: "Переданы некорректные данные" });
+    } else {
+      res.status(500).send({ message: "Ошибка сервера" });
+    }
+    });
 };
 module.exports.likeCard = (req, res) => {
   Card.findByIdAndUpdate(
   req.params.cardId,
-  { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+  { $addToSet: { likes: req.user._id } },
   { new: true },
 )
 .then(card => res.send({ data: card }))
@@ -43,7 +49,7 @@ module.exports.likeCard = (req, res) => {
 module.exports.dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
   req.params.cardId,
-  { $pull: { likes: req.user._id } }, // убрать _id из массива
+  { $pull: { likes: req.user._id } },
   { new: true },
 )
 .orFail()
