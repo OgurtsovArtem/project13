@@ -8,14 +8,15 @@ module.exports.getUser = (req,res) => {
 
 module.exports.getUserId = (req,res) => {
   User.findById(req.params.userId)
-      .then(user => {
-        if(user !== null){
-          res.send({ data: user });
-          return;
+      .orFail()
+      .then(user =>  res.send({ data: user }))
+      .catch((err) => {
+        if(err) {
+          res.status(404).send({ message: "Такого пользователя нет" });
+          return
         }
-        res.status(404).send({ message: "Такого пользователя нет" });
-      })
-      .catch(() => res.status(500).send({ message: `Произошла ошибка` }));
+        res.status(500).send({ message: `Произошла ошибка` });
+      });
 }
 
 module.exports.createUser = (req, res) => {
@@ -23,20 +24,39 @@ module.exports.createUser = (req, res) => {
 
   User.create({ name, about, avatar })
     .then(user => res.send({ data: user }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+      res.status(400).send({ message: "Переданы некорректные данные" });
+    } else {
+      res.status(500).send({ message: "Ошибка сервера" });
+    }
+    });
 };
 
 module.exports.updateUser = (req, res) => {
   const { name } = req.body;
   User.findByIdAndUpdate(req.user._id, { name: name })
+  .orFail()
   .then(user => res.send({ data: user }))
-  .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+  .catch((err) => {
+    if(err) {
+      res.status(404).send({ message: 'Ошибка авторизации' })
+      return
+    }
+    res.status(500).send({ message: 'Произошла ошибка' })
+  });
 };
 
 module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar: avatar })
   .then(user => res.send({ data: user }))
-  .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+   .catch((err) => {
+    if(err) {
+      res.status(404).send({ message: 'Ошибка авторизации' })
+      return
+    }
+    res.status(500).send({ message: 'Произошла ошибка' })
+  });
 };
 
